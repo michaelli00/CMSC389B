@@ -2,6 +2,8 @@
 ## Table of Contents
 1. [Procedural Languages/COBOL](#ProcLang)
 2. [Scripting Languages/Lua](#ScriptLang)
+3. [Logic Languages/Prolog](#LogicLang)
+4. [Stack Languages/Forth](#StackLang)
 <a name="ProcLang"></a>
 ## 1. Procedural Languages/COBOL
 **Procedure**: set of computational steps. Idea is to write code as a list of computational step.
@@ -282,3 +284,127 @@ Functions are created as `function funcName(arglist) ... end`
 * Any argument that is omitted is treated as `nil` in the function
 * Functions can return multiple results, using commas
 * Functions are **first-class**: they can be passed as variables
+<a name="LogicLang"></a>
+## 3. Logic Languages/Prolog
+### Propositional Logic
+**Proposition**: any statement that has a truth value.
+* $p \wedge q$
+* s
+* r -> t
+### Predicate Logic
+Introduces predicates, quantifiers, and functions
+* Quantifiers (forall, exists)
+* Predicates (denote relationships)
+### Prolog
+Goal is to acertain if a question is true or false, or, find values for given variables that make the predicate true.   
+**Objects**: used to represent something, entities assigned to a variable, represented using lowercase (not objects in Java)   
+**Relationships**: relates two objects `sisters(daphne, astoria)`   
+**Variables**: represented using capital letters and serve as placeholders `loves(john, X)`   
+3 basic operations:
+* Declaring facts:
+* Declaring rules: declaration that some fact is depending on something else `sisters(X,Y) :- parent(Z,X), parent(Z,Y).`
+* Asking questions: `sisters(daphne, astoria).`
+#### Procedures
+7 main operators:
+* `=`: used for *if and only if*. Does not evaluate expressions on either side of the operator. `?- 9=9` returns `true` but `?- 7+2=9` returns `false`
+* `is`: used for arithmetic expressions and only evaluates the **right hand** side of the expression. `7+2 is 9` evaluates to `false` but `9 is 7+2` evaluates `true`
+* `==`: used when checking if 2 things are identical. `X==2` is only true if `X` is assigned `2`.
+* `=:=`: compares arithmetic expressions
+* `\+`: NOT operator. `\+ false` evaluates to `true`
+* `,`: used to `and` goals
+* `;`: used to `or` goals
+
+Since Prolog only deals with `true` and `false`, return values need to be part of the query.
+* If a variable is part of the query: `increment(1, Z).` returns `Z=2`
+* If no variable is part of the query: `increment(1, 2).` returns `true`
+
+For recursion we can define a base case and a recursive case:
+```Prolog
+facotorial(0,1).
+factorial(N,F) :- N > 0, N1 is N-1, factorial(N1, F1), F is N*F1).
+```
+#### Asking/Answering Questions
+* Questions with no variables will evaluate as `true` or `false`: `sisters(daphne, astoria).` evaluates to `true`   
+* Questions with variables will be evaluated and variables that make the statement true are returned: `sisters(X, astoria).` returns `daphne`
+#### Backracking
+Backtracking: use previous statements to see what has been done to satisfy the question. Prolog uses backtracking for goal satisfaction (finding all possible solutions).   
+We can use the cut operator (`!`) to prevent unnecessary backtracking.
+## Stack Languages/Forth
+Stacks use **First In, Last Out (FILO)**. Operations include
+* pop: remove and returns the top value
+* push: adds an item to the top of the stack
+* peek: returns but does not remove top value of stack
+* remove: removes an item from the stack
+
+Types of order notation:
+* postfix notation: operator after operands `10 25 +` (analogous to using a stack)
+* infix notation: operator between operands `10 + 25`
+* prefix notation: operator before operands `+ 25 10`
+### Forth
+#### Stack/arithmetic operations:
+* `dup`: duplicates the top item of the stack
+* `drop`: removes the top item from the stack
+* `.`: pops top item from stack
+* `swap`: swaps top 2 items from stack
+* `over`: duplicates 2nd from top item from stack
+* `rot`: places 3rd item of stack on top
+* `nip`: removes 2nd from top item from stack
+* `tuck`: copies top item from stack and places it under the top 2 items
+#### Functions
+Procedures are called **colon definitions** and are closed using semicolons `;`
+```Forth
+: add1
+  1 + ;
+```
+#### Conditionals
+Conditionals are dependent on flags. `0` is false and `-1`, or any non-zero value, is true.
+```Forth
+: min
+  2dup < if
+    drop
+  else
+    nip
+  endif ;
+```
+Note that comparison operators will consume values on the stack
+```Forth
+1 2 ( put 1 then 2 on the stack )
+>   ( pop off 2 and 1 then compare )
+.s  ( print out the stack, in this case -1 )
+```
+#### Looping
+```Forth
+BEGIN
+  code1
+WHILE
+  code2
+REPEAT
+```
+`code` is executed if a true flag is on top of the stack. `code2` is run and the loop restarts.
+#### Memory
+Forth supports heap memory allocations (used for global variables or arrays). Global variables can be stored or fetched from memory using `!` or `@`, respectively.
+```Forth
+variable v
+v . \ prints the memory address 
+5 v ! \ places 5 in v and removes 5 from the stack
+v @ \ will place the value in v on the top of the stack.
+```
+Array structures can be allocates by allotting cells in memory. Pointer arithmetic can be used to access values
+```Forth
+create arr 20 cells allot
+389 arr 3 cells + ! \ places 389 in the cell with index 3 after arr.
+arr 3 cells + @ \ pushes the value in the cell at index 3 to the stack.
+```
+`char` size and `cell` size differ:
+```Forth
+\ I'm like pretty sure these two will allot the same amount of space
+create str 16 chars allot
+create str2 2 cells allot
+
+\ to add a string we want to use the 'chars' keyword
+97 str !
+98 str 1 chars + !
+
+str 2 type \ will print 2 chracters which are stored in 'str'.
+str 2 chars dump \ should do the same thing but also show the actual memory
+```
