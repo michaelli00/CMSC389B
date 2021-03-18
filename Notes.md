@@ -4,6 +4,8 @@
 2. [Scripting Languages/Lua](#ScriptLang)
 3. [Logic Languages/Prolog](#LogicLang)
 4. [Stack Languages/Forth](#StackLang)
+5. [Array Languages/J](#ArrayLang)
+6. [Security Languages/Rust](#SecurityLang)
 <a name="ProcLang"></a>
 ## 1. Procedural Languages/COBOL
 **Procedure**: set of computational steps. Idea is to write code as a list of computational step.
@@ -407,4 +409,182 @@ create str2 2 cells allot
 
 str 2 type \ will print 2 chracters which are stored in 'str'.
 str 2 chars dump \ should do the same thing but also show the actual memory
+```
+## 5. Array Languages/J
+Array Programming is a way to apply operations on an entire set of values at once in a **functional** manner.
+### J
+Data is stored in arrays and computations are performed by applying functions to arrays.
+#### Arithmetic/Data
+Sample code for an array `[1,2,3]` and indexing it. Tabbed lines are input, untabbed lines are output.
+```J
+  a =: 1 2 3
+  0 { a
+1
+  a { a
+2
+  2 { a
+3
+  3 { a
+|index error
+```
+
+Arrays also have **dimension** and **rank** (number of dimension). Arrays also have **shape**. `$` gives the right-argument's dimensions
+```J
+  $ a
+3
+  i. 3 4
+0 1  2  3
+4 5  6  7
+8 9 10 11
+  $ i. 3 4
+3 4
+  i. 2 2 2
+0 1
+2 3
+
+4 5
+6 7
+  $ i. 2 2 2
+2 2 2
+```
+`i.` outputs an array of the inputted dimensions filled in-order
+
+Dyadic `$` will put the right-arg input into an array of the left-arg shape
+```J
+  2 2 $ 1 2 3 4
+1 2
+3 4
+```
+Arithmetic is applied to arrays element-wise
+```J
+   2 3 * 4 5
+8 15
+```
+Information is stored using `=:` (or `=.` for local variables)
+```J
+  a =: 'hello!'
+  a
+hello!
+  a =: 1 2 3
+  b =: 4 5 6
+5 7 9
+```
+#### Control Flow
+Functions
+```
+func_name =: 4 : <fxn operations>
+```
+A **monadic** functions takes only 1 argument (usually right-arg).
+
+A **Dyadic** functions takes 2 arguments (1 left, 1 right)
+
+Control flow key terms
+* `if. do. elseif. do. else. end`
+* `while. do. end`
+* `for. A do. B end.`
+* `for _a. A do. B. end.`
+* `return.`
+* `break.`
+* `continue.`
+* `select. case. do. fcase. do. end.`
+Iterator:
+```J
+for_item. 4 5 6 do.
+  smoutput item ; item_index
+end.
+)
+
+4 0
+5 1
+6 2
+```
+## 6. Security Languages/Rust
+When a security attack occurs, 1 of 3 things usually happen:
+* Data that shouldn't have been read is read 
+* Data that shouldn't have been modified is modified
+* Data that should be public is blocked
+
+These attacks are usually a result of **memory misuses** (dangling pointers, memory leaks)
+### Types of Attacks
+#### Buffer Overflow
+data past the buffer is overwritten. Rust mitigates this issue with **splices** and **vectors**
+```C
+char buffer[5];
+scanf("%s", buffer);
+// If we input 'hackerman' the content beyond the buffer is overwritten
+```
+#### Memory
+One example is dangling pointers. Rust helps prevent (but doesn't fully stop vulnerabilities) using **limetimes** and **ownership**
+```C
+struct Node {
+  int value;
+  sturct Node* next;
+}
+
+struct Node *head = malloc(sizeof(struct Node);
+struct Node *tail = malloc(sizeof(struct Node);
+head->value = 10;
+tail->value = 14;
+head->next = tail;
+free(tail);
+// tail is already free'd but we're doing some type of operation on it (dangling pointer)
+if (head->next == NULL) {
+  do_something();
+}
+```
+#### Time Attacks
+Using multithreading to access data we aren't supposed to be accessing (e.g. passwords). Rust mitigates this using **ownership** and **borrowing rules**.
+```C
+if (access("/home/student/file.txt", R_OK) != 0) {
+  exit(1);
+}
+// comment 1
+fd = open("/home/student/fil.txt", R_WRONLY);
+read(fd, buffer, 1023);
+```
+```C
+symlink("/secret/root/file", "home/student/file.txt");
+```
+In this example, if the first program execution was paused at `// comment`, then the second program (multithreading) ran, `file.txt` points to a different file. When the first program resumes, it will open a potentially open a file with private information.
+
+### Rust
+#### Ownership and Borrowing
+Each piece of data has both an **owner** and a **lifetime**
+* Only the owner can change the data. Ownership refers to which variable has the privilege of pointing to a piece of data with its memory address.
+  * **Reference**, or **borrowing**, refers to temporarily giving privilege to another variable for this data.
+* Lifetime determines where the data can be seen or how long it lasts in memory
+```Rust
+let x = 32;
+x = 22; //not okay (not mutable)
+--------------------------------
+let mut x = 32;
+x = 23; // okay
+```
+Reference can be created using `&`. To create a mutable reference use `&mut`.
+```Rust
+let mut s1 = String::from("hello");
+let s2 = &mut s1;
+// s1 is the mutable owner. s2 is given a mutable reference
+// both s1 and s2 can modify the data so long s2 is not borrowed
+-------------------------------------
+let s1 = String::from("hello");
+let s2 = &mut s1; // not allowed since s1 is not mutable
+------------------------------------
+let mut s1 = String::from("hello");
+let s2 = &s1;
+// s1 is mutable owner and s2 is immutable reference so only s1 can modify it
+```
+#### Slices
+Contain metadata about the data they refer to
+```Rust
+let mystr = "Hello World".to_srting();
+let myslice = &mystr[4..9]; //o Wor"
+```
+Mutable slices can be created, so long as the original data is mutable
+```Rust
+let mut mystr = "Hello World".to_srting();
+let myslice = &mut mystr[4..9]; // this is fine
+-----------------------------------
+let mystr = "Hello World".to_srting();
+let myslice = &mut mystr[4..9]; // this is not ok
 ```
